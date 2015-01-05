@@ -5,6 +5,9 @@ DS.JsonApiSerializer = DS.RESTSerializer.extend({
   keyForRelationship: function(key) {
     return key;
   },
+  keyForRecord: function(record) {
+    return record.constructor.typeKey;
+  },
   /**
    * Patch the extractSingle method, since there are no singular records
    */
@@ -146,14 +149,14 @@ DS.JsonApiSerializer = DS.RESTSerializer.extend({
    */
   serializeBelongsTo: function(record, json, relationship) {
     var attr = relationship.key;
-    var belongsTo = get(record, attr);
-    if (isNone(belongsTo)) return;
+    var associate = get(record, attr);
+    if (isNone(associate)) return;
 
-    var type = this.keyForRelationship(belongsTo.constructor.typeKey);
+    var type = this.keyForRecord(associate);
     var key = this.keyForRelationship(attr);
 
     json.links = json.links || {};
-    json.links[key] = belongsToLink(key, type, get(belongsTo, 'id'));
+    json.links[key] = belongsToLink(key, type, get(associate, 'id'));
   },
 
   /**
