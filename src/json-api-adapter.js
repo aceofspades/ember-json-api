@@ -1,4 +1,6 @@
+import Ember from 'ember';
 var get = Ember.get;
+var merge = Ember.merge;
 
 /**
  * Keep a record of routes to resources by type.
@@ -57,9 +59,16 @@ DS.JsonApiAdapter = DS.RESTAdapter.extend({
   createRecord: function(store, type, record) {
     var data = {};
 
-    data[this.pathForType(type.typeKey)] = store.serializerFor(type.typeKey).serialize(record, {
+    var json = store.serializerFor(type.typeKey).serialize(record, {
       includeId: true
     });
+    var linked = json.linked;
+    delete json.linked;
+
+    data[this.pathForType(type.typeKey)] = json;
+    if (linked) {
+      data = merge(data, {linked: linked});
+    }
 
     return this.ajax(this.buildURL(type.typeKey), 'POST', {
       data: data

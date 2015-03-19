@@ -1,3 +1,5 @@
+import Ember from 'ember';
+
 var get = Ember.get;
 var isNone = Ember.isNone;
 
@@ -103,9 +105,9 @@ DS.JsonApiSerializer = DS.RESTSerializer.extend({
   /**
    * Override this method to parse the top-level "meta" object per type.
    */
-  extractMeta: function(meta) {
-    // no op
-  },
+  //extractMeta: function(meta) {
+  //  // no op
+  //},
 
   /**
    * Parse the top-level "links" object.
@@ -170,6 +172,21 @@ DS.JsonApiSerializer = DS.RESTSerializer.extend({
     if (relationship.kind === 'hasMany') {
       json.links = json.links || {};
       json.links[key] = hasManyLink(key, type, record, attr);
+
+      // TODO check model options to see if record should be embedded
+
+      var associates = get(record, attr).filter(function (_record) {
+        return _record.get('isDirty');
+      });
+      if (associates.length > 0) {
+        json.linked = json.linked || {};
+        json.linked[key] = json.linked[key] || [];
+        var self = this;
+        associates.forEach(function (associate) {
+          var _json = self.serialize(associate);
+          json.linked[key].push(_json);
+        });
+      }
     }
   }
 });
